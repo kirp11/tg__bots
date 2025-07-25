@@ -54,13 +54,32 @@ async def chose_year(message:types.Message):
 @dp.message(lambda message: int(message.text) in range(2009,2026))
 
 async def show_results(message:types.Message):
+    search_year = message.text
+
+#
+#     def search_film_generator(genre, year):
+#         lst_film = 0
+#         while True:
+#             for key in movies:
+#                 movie = movies[key]
+#                 if movie['genre'] == genre and movie['year'] == year:
+#                     yield movie['title']
+#                     lst_film += 1
+#
+#     def output_film():
+#         nonlocal search_genre, lst_film
+#         gen_films = search_film_generator(search_genre, search_year)
+#         for i in range(lst_film):
+#             return(next(gen_films))
+
+
     kb_builder = InlineKeyboardBuilder()
     inline_save_btn = InlineKeyboardButton(text='Сохранить', callback_data="save")
     inline_next_btn = InlineKeyboardButton(text='Следующий', callback_data="next")
     kb_builder.add(inline_save_btn, inline_next_btn)
 
     await message.answer("Советую вам посмотреть: \n"
-                         f"{}", reply_markup=kb_builder.as_markup())
+                         f"", reply_markup=kb_builder.as_markup())
 
 
 
