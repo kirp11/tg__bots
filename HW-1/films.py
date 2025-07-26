@@ -56,11 +56,10 @@ movies = {
 }
 
 
-def search_film(search_genre, search_year):
-    lst_film = []
-    for key in movies:
-        movie = movies[key]
-        if movie['genre'] == search_genre and movie['year'] == search_year:
-            lst_film.append(movie['title'])
-    return lst_film
-print(search_film("Мультфильм", 2023))
+# def search_film(search_genre, search_year):
+#     lst_film = []
+#     for key in movies:
+#         movie = movies[key]
+#         if movie['genre'] == search_genre and movie['year'] == search_year:
+#             lst_film.append(movie['title'])
+#     return lst_film
