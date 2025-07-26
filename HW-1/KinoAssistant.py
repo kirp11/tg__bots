@@ -57,6 +57,7 @@ async def chose_year(message:types.Message):
     reply_kb2.adjust(1)
     await message.answer("Выберите год выпуска", reply_markup=reply_kb2.as_markup(resize_keyboard=True))
 
+
 def search_films(genre, year):
     for key in movies:
         movie = movies[key]
@@ -66,30 +67,36 @@ def search_films(genre, year):
     return lst_film
 
 
-
 def films_generator():
     i = 0
-    while True:
-        try:
-            yield lst_film[i]
-            i+=1
-        except:
-
+    while i < len(lst_film):
+        yield lst_film[i]
+        i+=1
 
 def show_films():
-    # gen_films = films_generator()
-    # for i in range(len(lst_film)):
+    try:
         return next(gen_films)
+    except StopIteration:
+        finish_search()
 
 
-@dp.message(lambda message: int(message.text) in range(2019,2026))
+def finish_search():
+    kb_builder = InlineKeyboardBuilder()
+    inline_save_btn = InlineKeyboardButton(text='Посмотреть сохраненные фильмы', callback_data="save_films")
+    inline_next_btn = InlineKeyboardButton(text='Новый поиск', callback_data="start_search")
+    kb_builder.add(inline_save_btn, inline_next_btn)
 
+    async def send_message_async():
+        await bot.send_message("Предложения закончились!!(((", reply_markup=kb_builder.as_markup())
+
+
+
+@dp.message(lambda message: int(message.text) in range(2019,2025))
 async def show_results(message:types.Message):
     global search_year, gen_films
     search_year = message.text
     films_lst = search_films(search_genre, search_year)
     gen_films = films_generator()
-
 
 
     if len(films_lst)==0:
