@@ -161,7 +161,7 @@ async def show_saved_films(callback: CallbackQuery):
     await callback.message.answer(f"Выбранные вами фильмы: \n {show_my_films()}", reply_markup=kb_builder.as_markup())
 
 @dp.message(command.Command("mylist"))
-async def show_saved_films(message:types.Message):
+async def show_saved_films_my(message:types.Message):
 
     kb_builder = InlineKeyboardBuilder()
     inline_new_search_btn = InlineKeyboardButton(text='Новый поиск', callback_data="start_search")
