@@ -73,31 +73,19 @@ def films_generator():
         yield lst_film[i]
         i+=1
 
-def show_films():
+async def show_films():
     try:
-        return next(gen_films)
+        film = next(gen_films)
+        return film
     except StopIteration:
-        finish_search()
+        return None
 
 
-def finish_search():
-    kb_builder = InlineKeyboardBuilder()
-    inline_save_btn = InlineKeyboardButton(text='Посмотреть сохраненные фильмы', callback_data="save_films")
-    inline_next_btn = InlineKeyboardButton(text='Новый поиск', callback_data="start_search")
-    kb_builder.add(inline_save_btn, inline_next_btn)
-
-    async def send_message_async():
-        await bot.send_message("Предложения закончились!!(((", reply_markup=kb_builder.as_markup())
-
-
-
-@dp.message(lambda message: int(message.text) in range(2019,2025))
+@dp.message(lambda message: int(message.text) in range(2020,2025))
 async def show_results(message:types.Message):
     global search_year, gen_films
     search_year = message.text
     films_lst = search_films(search_genre, search_year)
-    gen_films = films_generator()
-
 
     if len(films_lst)==0:
         kb_builder = InlineKeyboardBuilder()
@@ -106,23 +94,41 @@ async def show_results(message:types.Message):
         kb_builder.add(inline_new_search_btn, inline_end_btn)
         await message.answer("фильмов по заданным параметрам не найдено", reply_markup=kb_builder.as_markup())
     else:
+        gen_films = films_generator()
+        film = await show_films()
+        if film:
+            kb_builder = InlineKeyboardBuilder()
+            inline_save_btn = InlineKeyboardButton(text='Сохранить', callback_data="save")
+            inline_next_btn = InlineKeyboardButton(text='Следующий', callback_data="next")
+            kb_builder.add(inline_save_btn, inline_next_btn)
+
+            await message.answer("Советую вам посмотреть: \n"
+                                 f"{film}", reply_markup=kb_builder.as_markup())
+
+@dp.callback_query(F.data=="next")
+async def start_research(callback: CallbackQuery):
+    film = await show_films()
+    if film:
         kb_builder = InlineKeyboardBuilder()
         inline_save_btn = InlineKeyboardButton(text='Сохранить', callback_data="save")
         inline_next_btn = InlineKeyboardButton(text='Следующий', callback_data="next")
         kb_builder.add(inline_save_btn, inline_next_btn)
 
-        await message.answer("Советую вам посмотреть: \n"
-                             f"{show_films()}", reply_markup=kb_builder.as_markup())
+        await callback.message.answer("Советую вам посмотреть: \n"
+                             f"{film}", reply_markup=kb_builder.as_markup())
+    else:
 
-@dp.callback_query(F.data=="next")
-async def start_research(callback: CallbackQuery):
+        await finish_search(callback)
+
+
+@dp.callback_query(F.data=="end")
+async def finish_search(callback: CallbackQuery):
     kb_builder = InlineKeyboardBuilder()
-    inline_save_btn = InlineKeyboardButton(text='Сохранить', callback_data="save")
-    inline_next_btn = InlineKeyboardButton(text='Следующий', callback_data="next")
+    inline_save_btn = InlineKeyboardButton(text='Сохраненные 🎬', callback_data="save_films")
+    inline_next_btn = InlineKeyboardButton(text='Новый поиск', callback_data="start_search")
     kb_builder.add(inline_save_btn, inline_next_btn)
-    await callback.message.answer("Советую вам посмотреть: \n"
-                         f"{show_films()}", reply_markup=kb_builder.as_markup())
 
+    await callback.message.answer("Предложения закончились!!(((", reply_markup=kb_builder.as_markup())
 
 
 async def main():
