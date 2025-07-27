@@ -93,7 +93,7 @@ async def show_films():
         return None
 
 
-@dp.message(lambda message: int(message.text) in range(2020,2025))
+@dp.message(lambda message: message.text.isdigit() and int(message.text) in range(2020,2025))
 async def show_results(message:types.Message):
     global search_year, gen_films, current_film
     search_year = message.text
