@@ -5,7 +5,7 @@ import handlers
 import aiogram
 from aiogram import  types
 
-BOT_TOKEN = "Token"
+BOT_TOKEN = "7355450980"
 
 
 
@@ -19,7 +19,7 @@ async def main():
     dp = aiogram.Dispatcher()
     dp.include_router(handlers.router)
 
-    await book_service.book_repo.init_table()
+    await book_service.book_repo.init_tables()
 
     await dp.start_polling(bot)
 

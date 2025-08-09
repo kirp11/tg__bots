@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS `Books` (
             await db.execute(sql_command)
             await db.commit()
 
-    async def create_book(self, user_id: int, book: Book) -> Book:
+    async def create_book(self, user_id: int, title, pages_count) -> Book:
         sql_command = f"""
 INSERT INTO `Books` (`user_id`, `title`, `pages_count`) VALUES (
     ?, ?, ?
@@ -34,11 +34,11 @@ INSERT INTO `Books` (`user_id`, `title`, `pages_count`) VALUES (
             # возвращались не кортежи, а словари
             db.row_factory = aiosqlite.Row
 
-            await db.execute(sql_command, [user_id, book.title, book.pages_count])
+            await db.execute(sql_command, [user_id, title, pages_count])
             await db.commit()
 
             cursor = await db.execute(
-                "SELECT * FROM `Books` WHERE `title` = ?", [book.title]
+                "SELECT * FROM `Books` WHERE `title` = ?", [title]
             )
             # raw_book = {'user_id': 1, 'id': 1, ...}
             raw_book = await cursor.fetchone()
@@ -46,7 +46,7 @@ INSERT INTO `Books` (`user_id`, `title`, `pages_count`) VALUES (
 
     async def update_pages(self, book_id: int, pages: int) -> Book:
         sql_command = """
-        UPDATE TABLE `Books`
+        UPDATE `Books`
         SET `pages_read` = ?
         WHERE `id` = ?;
         """
@@ -58,7 +58,7 @@ INSERT INTO `Books` (`user_id`, `title`, `pages_count`) VALUES (
             await db.commit()
 
             cursor = await db.execute(
-                "SELECT * FROM `Books` WHERE `book_id` = ?", [book_id]
+                "SELECT * FROM `Books` WHERE `id` = ?", [book_id]
             )
             raw_book = await cursor.fetchone()
             return Book(**dict(raw_book))

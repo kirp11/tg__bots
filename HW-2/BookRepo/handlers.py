@@ -5,6 +5,7 @@ from aiogram.filters import command
 from aiogram import types, F
 
 from main import main, book_service
+from models import Book
 
 router = aiogram.Router()
 
@@ -24,45 +25,51 @@ async def start_handler(message: types.Message):
                          "/stats Показать общее количество книг и общее число прочитанных страниц  ")
 
 
-@router.message(F.text.lower().startswith("add_book"))
+@router.message(command.Command("add_book"))
 async def add_handler(message: types.Message, command: command.CommandObject):
+    id_user = message.from_user.id
     msg = str(command.args)
-    await book_service.add_book(msg)
+    title = str(msg.split(" ")[0])
+    pages_count = int(msg.split(" ")[1])
+    await book_service.add_book(id_user, title, pages_count)
 
-@router.message(F.text.lower().startswith("mark_read"))
+@router.message(command.Command("mark_read"))
 async def mark_handler(message: types.Message, command: command.CommandObject):
     msg = str(command.args)
     book_id = int(msg.split(" ")[0])
-    pages = book_id = int(msg.split(" ")[1])
+    pages = int(msg.split(" ")[1])
     await book_service.increase_read_pages(book_id, pages)
 
 
-@router.message(F.text.lower().startswith("list_books"))
+@router.message(command.Command("list_books"))
 async def fetch_handler(message: types.Message):
     id_user = message.from_user.id
     kb_builder = InlineKeyboardBuilder()
     inline_remove_btn = InlineKeyboardButton(text='Удалить первую в списке', callback_data="remove")
     kb_builder.add(inline_remove_btn)
-    text = await book_service.list_books(id_user)
+    books = await book_service.list_books(id_user)
+    if not books:
+        await message.answer("У вас пока нет книг в списке.")
+        return
+
+    text = "\n".join([f"{book.id}: {book.title} ({book.pages_read}/{book.pages_count})" for book in books])
 
     await message.answer(text, reply_markup=kb_builder.as_markup())
 
 @router.message(F.text.lower().startswith("remove_book"))
 async def remove_handler(message: types.Message,command: command.CommandObject):
-    id_user = message.from_user.id
     book_id = int(command.args)
-    await book_service.remove_book(id_user, book_id)
+    await book_service.remove_book( book_id)
 
 @router.callback_query(F.data=="remove")
 async def remove_handler(callback: CallbackQuery):
-    id_user = callback.from_user.id
-    await book_service.remove_book(id_user, 1)
+    await book_service.remove_book(1)
 
 
-@router.message(F.text.lower().startswith("stats"))
+@router.message(command.Command("stats"))
 async def stats_handler(message: types.Message):
     id_user = message.from_user.id
     books = await book_service.list_books(id_user)
-    summ_pages = sum(books.pages_count)
+    summ_pages = sum(book.pages_count for book in books)
 
     await message.answer(f"Вы читаете {len(books)} книги, всего прочитано {summ_pages} страницы.")
