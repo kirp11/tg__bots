@@ -1,19 +1,28 @@
 import asyncio
 
-from repo import BookRepo
+import asyncio
+import handlers
+import aiogram
+from aiogram import  types
 
+BOT_TOKEN = "Token"
+
+
+
+from repo import BookRepo
+from service import BookService
+
+book_service = BookService(BookRepo("database.db"))
 
 async def main():
+    bot = aiogram.Bot(token=BOT_TOKEN)
+    dp = aiogram.Dispatcher()
+    dp.include_router(handlers.router)
 
-    book_repo = BookRepo("database.db")
-    #book = await book_repo.create_book(user_id=1, title="Колобок", pages_count=20)
-    #print(book)
+    await book_service.book_repo.init_table()
 
-    print(await book_repo.fetch_books(user_id=1))
-
-    await book_repo.delete_book(book_id=1)
-
-    print(await book_repo.fetch_books(user_id=1))
+    await dp.start_polling(bot)
 
 
-asyncio.run(main())
+if __name__ == '__main__':
+    asyncio.run(main())
